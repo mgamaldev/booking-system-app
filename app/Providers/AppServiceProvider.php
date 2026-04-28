@@ -11,11 +11,12 @@ class AppServiceProvider extends ServiceProvider
 {
     /**
      * Register any application services.
+     *
      * @throws \ReflectionException
      */
     public function register(): void
     {
-        App::bind(BookingRepositoryInterface::class , NullBookingRepository::class);
+        App::bind(BookingRepositoryInterface::class, NullBookingRepository::class);
     }
 
     /**
