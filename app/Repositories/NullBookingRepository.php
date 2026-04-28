@@ -2,7 +2,4 @@
 
 namespace App\Repositories;
 
-class NullBookingRepository implements BookingRepositoryInterface
-{
-
-}
+class NullBookingRepository implements BookingRepositoryInterface {}
