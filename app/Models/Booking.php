@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\ValueObjects\Casts\SlotDurationCast;
 use Database\Factories\BookingFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,6 +23,7 @@ class Booking extends Model
 
     protected $casts = [
         'status' => 'string',
+        'duration' => SlotDurationCast::class,
     ];
 
     public function customer(): BelongsTo
