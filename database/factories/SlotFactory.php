@@ -3,7 +3,9 @@
 namespace Database\Factories;
 
 use App\Models\Slot;
+use Dflydev\DotAccessData\Data;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Carbon;
 
 /**
  * @extends Factory<Slot>
@@ -17,12 +19,19 @@ class SlotFactory extends Factory
      */
     public function definition(): array
     {
-        return [
+        $start = Carbon::createFromTime(
+            $this->faker->numberBetween(8, 18),
+            0
+        );
 
-            'start_time' => $this->faker->time(),
-            'end_time' => $this->faker->time(),
-            'date' => $this->faker->date(),
-            'status' => $this->faker->randomElement(['active', 'inactive']),
+        $durationMinutes = $this->faker->numberBetween(30, 90);
+        $end = (clone $start)->addMinutes($durationMinutes);
+
+        return [
+            'start_time' => $start->format('H:i:s'),
+            'end_time' => $end->format('H:i:s'),
+            'date' => fake()->date,
+            'status' => 'active',
         ];
     }
 }
