@@ -2,12 +2,17 @@
 
 namespace App\Models;
 
+use App\ValueObjects\SlotDuration;
 use Database\Factories\SlotFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
+/**
+ * @method static findOrFail(mixed $slot_id)
+ */
 class Slot extends Model
 {
     /** @use HasFactory<SlotFactory> */
@@ -18,8 +23,6 @@ class Slot extends Model
         'end_time',
         'date',
         'status',
-        'resource_id',
-        'customer_id',
     ];
 
     protected $casts = [
@@ -34,5 +37,14 @@ class Slot extends Model
     public function resource(): BelongsTo
     {
         return $this->belongsTo(Resource::class);
+    }
+
+
+    public function duration(): SlotDuration
+    {
+        return SlotDuration::fromTimes(
+            Carbon::parse($this->start_time),
+            Carbon::parse($this->end_time)
+        );
     }
 }

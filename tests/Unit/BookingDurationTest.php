@@ -8,10 +8,12 @@ use App\Models\Resource;
 use App\Models\Slot;
 use App\ValueObjects\SlotDuration;
 use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class BookingDurationTest extends TestCase
 {
+    use RefreshDatabase;
     /**
      * A basic unit test example.
      */
@@ -24,6 +26,12 @@ class BookingDurationTest extends TestCase
             'slot_id' => $slot->id,
             'status' => 'pending',
         ]);
+//        dd($booking->duration);
+
+        $this->assertInstanceOf(
+            SlotDuration::class,
+            $booking->duration,
+        );
         $this->assertIsInt($booking->duration->minutes);
         $this->assertInstanceOf(SlotDuration::class, $booking->duration);
     }

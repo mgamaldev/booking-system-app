@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Slot;
+use Dflydev\DotAccessData\Data;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
 
@@ -24,8 +25,6 @@ class SlotFactory extends Factory
         );
 
         $durationMinutes = $this->faker->numberBetween(30, 90);
-        //        $durationMinutes = $this->faker->randomElement([30, 60, 90]);
-
         $end = (clone $start)->addMinutes($durationMinutes);
 
         return [

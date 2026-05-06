@@ -12,10 +12,10 @@ class SlotDurationCast implements CastsAttributes
 {
     public function get(Model $model, string $key, mixed $value, array $attributes): ?SlotDuration
     {
-        $slot = Slot::find($attributes['slot_id']);
+        $slot = Slot::findOrFail($attributes['slot_id']);
         $value = Carbon::parse($slot->start_time)->diffInMinutes($slot->end_time);
 
-        return $value != null ? new SlotDuration((int) $value) : null;
+        return $value !== null ? new SlotDuration((int) $value) : null;
     }
 
     public function set(Model $model, string $key, mixed $value, array $attributes): ?int
