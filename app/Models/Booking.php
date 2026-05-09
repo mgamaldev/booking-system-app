@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
-use App\ValueObjects\Casts\SlotDurationCast;
+use App\Builders\BookingQueryBuilder;
 use App\ValueObjects\SlotDuration;
 use Database\Factories\BookingFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+
 
 class Booking extends Model
 {
@@ -47,5 +48,10 @@ class Booking extends Model
     public function getDurationAttribute(): SlotDuration
     {
         return  $this->slot->duration();
+    }
+
+    public function newEloquentBuilder($query): BookingQueryBuilder
+    {
+        return new BookingQueryBuilder($query);
     }
 }
