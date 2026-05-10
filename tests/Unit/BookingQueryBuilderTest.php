@@ -85,4 +85,32 @@ class BookingQueryBuilderTest extends TestCase
         $this->assertContains('slot', $eagerLoads);
         $this->assertContains('resource', $eagerLoads);
     }
+
+    public function test_paginate_appends_query_parameters(): void
+    {
+        Booking::factory()->count(3)->create();
+
+        $query = Booking::query()->paginate(2);
+
+        $array = $query->appends(request()->query())->toArray();
+
+        $this->assertArrayHasKey('last_page', $array);
+    }
+
+    public function test_upcoming__booking_filter(): void {
+        $slot = Slot::factory()->create(
+            [
+                'date' => now()->addDay()->toDateString()
+            ]
+        );
+
+         Booking::factory()->create(['slot_id'   =>  $slot->id ]);
+
+         $bookings = Booking::query()->upcoming()->get();
+
+         $this->assertCount(1, $bookings);
+
+    }
+
+
 }

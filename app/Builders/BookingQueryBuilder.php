@@ -3,6 +3,8 @@
 namespace App\Builders;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\AbstractPaginator;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class BookingQueryBuilder extends Builder
 {
@@ -13,7 +15,9 @@ class BookingQueryBuilder extends Builder
 
     public function upcoming(): self
     {
-        return $this->where('start_time', '>', now());
+        return $this->whereHas('slot' , function ($query) {
+              return  $query->where('date' , '>=' , now());
+        });
     }
 
     public function byCustomer(int $customerId): self
@@ -33,5 +37,10 @@ class BookingQueryBuilder extends Builder
             'slot',
             'resource',
         ]);
+    }
+
+    public function paginate($perPage = null, $columns = ['*'], $pageName = 'page', $page = null, $total = null): LengthAwarePaginator|AbstractPaginator
+    {
+        return parent::paginate($perPage, $columns, $pageName, $page, $total)->appends(request()->query());
     }
 }
