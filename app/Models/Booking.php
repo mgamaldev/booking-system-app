@@ -21,6 +21,11 @@ class Booking extends Model
             'resource_id',
             'slot_id',
             'status',
+            'star_date',
+            'end_date',
+            'recurrence_rule',
+            'max_participants',
+            'type'
         ];
 
     protected $with = ['slot' , 'resource' , 'customer'];
