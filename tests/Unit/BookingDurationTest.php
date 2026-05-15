@@ -14,6 +14,7 @@ use Tests\TestCase;
 class BookingDurationTest extends TestCase
 {
     use RefreshDatabase;
+
     /**
      * A basic unit test example.
      */
@@ -26,7 +27,7 @@ class BookingDurationTest extends TestCase
             'slot_id' => $slot->id,
             'status' => 'pending',
         ]);
-//        dd($booking->duration);
+        //        dd($booking->duration);
 
         $this->assertInstanceOf(
             SlotDuration::class,

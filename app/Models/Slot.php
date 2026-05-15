@@ -39,7 +39,6 @@ class Slot extends Model
         return $this->belongsTo(Resource::class);
     }
 
-
     public function duration(): SlotDuration
     {
         return SlotDuration::fromTimes(

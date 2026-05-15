@@ -8,13 +8,13 @@ use Database\Factories\BookingFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
-
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Booking extends Model
 {
     /** @use HasFactory<BookingFactory> */
-    use HasFactory;
+    use HasFactory , SoftDeletes;
+
     protected $fillable =
         [
             'customer_id',
@@ -23,9 +23,10 @@ class Booking extends Model
             'status',
         ];
 
-    protected $with = ['slot' , 'resource' , 'customer'];
+    protected $with = ['slot', 'resource', 'customer'];
 
-    protected $appends =  ['duration'];
+    protected $appends = ['duration'];
+
     protected $casts = [
         'status' => 'string',
     ];
@@ -47,7 +48,7 @@ class Booking extends Model
 
     public function getDurationAttribute(): SlotDuration
     {
-        return  $this->slot->duration();
+        return $this->slot->duration();
     }
 
     public function newEloquentBuilder($query): BookingQueryBuilder

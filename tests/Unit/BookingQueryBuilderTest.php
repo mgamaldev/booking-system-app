@@ -97,20 +97,19 @@ class BookingQueryBuilderTest extends TestCase
         $this->assertArrayHasKey('last_page', $array);
     }
 
-    public function test_upcoming__booking_filter(): void {
+    public function test_upcoming__booking_filter(): void
+    {
         $slot = Slot::factory()->create(
             [
-                'date' => now()->addDay()->toDateString()
+                'date' => now()->addDay()->toDateString(),
             ]
         );
 
-         Booking::factory()->create(['slot_id'   =>  $slot->id ]);
+        Booking::factory()->create(['slot_id' => $slot->id]);
 
-         $bookings = Booking::query()->upcoming()->get();
+        $bookings = Booking::query()->upcoming()->get();
 
-         $this->assertCount(1, $bookings);
+        $this->assertCount(1, $bookings);
 
     }
-
-
 }
