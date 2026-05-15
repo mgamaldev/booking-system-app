@@ -2,8 +2,6 @@
 
 namespace App\Factories;
 
-
-use App\Factories\BookingFactoryInterface;
 use App\Models\Booking;
 use App\Models\Slot;
 use Exception;
@@ -13,22 +11,21 @@ class GroupBookingFactory implements BookingFactoryInterface
     public function create(array|string $data): Booking
     {
         if (! isset($data['max_participants'])) {
-            throw new \Exception('Max participants is required for group booking.');
+            throw new Exception('Max participants is required for group booking.');
         }
 
-         $slot = Slot::findOrFail($data['slot_id']);
+        $slot = Slot::findOrFail($data['slot_id']);
 
-         $status = $this->determineGroupBookingStatus($slot, $data);
+        $status = $this->determineGroupBookingStatus($slot, $data);
 
         return Booking::create([
             'customer_id' => $data['customer_id'],
             'slot_id' => $data['slot_id'],
             'type' => 'group',
             'status' => $status,
-            'max_participants' => $data['max_participants']
+            'max_participants' => $data['max_participants'],
         ]);
     }
-
 
     private function determineGroupBookingStatus(Slot $slot, array $data): string
     {
