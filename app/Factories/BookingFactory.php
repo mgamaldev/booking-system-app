@@ -1,27 +1,21 @@
 <?php
 
-
-
-
 namespace App\Factories;
 
-//use App\Exceptions\DomainException;
-use _PHPStan_a8704accb\Nette\Neon\Exception;
-use App\Models\Booking;
+use InvalidArgumentException;
 
 class BookingFactory
 {
-
     /**
-     * @throws Exception
+     * @throws InvalidArgumentException
      */
-    public static function  resolve(string $type): BookingFactoryInterface
+    public static function resolve(string $type): BookingFactoryInterface
     {
         return match ($type) {
-            'one-on-one' =>  new OneToOneBookingFactory(),
-            'group' =>   new GroupBookingFactory(),
-            'recurring' => New RecurringBookingFactory(),
-            default => throw new Exception("Unsupported booking type"),
+            'one-on-one' => new OneToOneBookingFactory,
+            'group' => new GroupBookingFactory,
+            'recurring' => new RecurringBookingFactory,
+            default => throw new InvalidArgumentException('Unsupported booking type'),
         };
     }
 }

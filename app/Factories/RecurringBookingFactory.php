@@ -1,11 +1,11 @@
 <?php
 
-    namespace App\Factories;
-    use App\Factories\BookingFactoryInterface;
-    use App\Models\Booking;
-    use App\Models\Slot;
-    use Carbon\Carbon;
-    use Illuminate\Support\Facades\DB;
+namespace App\Factories;
+
+use App\Models\Booking;
+use App\Models\Slot;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class RecurringBookingFactory implements BookingFactoryInterface
 {
@@ -25,7 +25,7 @@ class RecurringBookingFactory implements BookingFactoryInterface
             $firstBooking = null;
 
             foreach ($dates as $date) {
-                $slot = Slot::whereDate('date', $date)->where('start_time' , $data['start_time'])->first();
+                $slot = Slot::whereDate('date', $date)->where('start_time', $data['start_time'])->first();
 
                 $alreadyBooked = Booking::where('slot_id', $slot->id)
                     ->whereIn('status', ['confirmed', 'pending'])
@@ -69,5 +69,4 @@ class RecurringBookingFactory implements BookingFactoryInterface
 
         return $dates;
     }
-
 }

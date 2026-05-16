@@ -1,12 +1,13 @@
 <?php
 
-use App\Models\Booking;
+use App\Factories\BookingFactory;
+use App\Factories\GroupBookingFactory;
+use App\Factories\OneToOneBookingFactory;
 use Tests\TestCase;
 
-class BookingFactoryTest   extends TestCase
+class BookingFactoryTest extends TestCase
 {
-
-    public function test_BookingFactoryReturnsCorrectBookingFactoryClass()
+    public function test_booking_factory_returns_correct_booking_factory_class()
     {
         $data = [
             'type' => 'one-on-one',
@@ -14,13 +15,12 @@ class BookingFactoryTest   extends TestCase
             'customer_id' => 1,
         ];
 
-        $bookingFactoryClass = \App\Factories\BookingFactory::resolve($data['type']);;
+        $bookingFactoryClass = BookingFactory::resolve($data['type']);
 
-        $this->assertInstanceOf(\App\Factories\OneToOneBookingFactory::class, $bookingFactoryClass);
+        $this->assertInstanceOf(OneToOneBookingFactory::class, $bookingFactoryClass);
     }
 
-
-    public function test_BookingFactoryReturnsCorrectBookingFactoryClassForGroupBooking()
+    public function test_booking_factory_returns_correct_booking_factory_class_for_group_booking()
     {
         $data = [
             'type' => 'group',
@@ -28,10 +28,7 @@ class BookingFactoryTest   extends TestCase
             'customer_id' => 1,
         ];
 
-        $bookingFactoryClass = \App\Factories\BookingFactory::resolve($data['type']);;
-        $this->assertInstanceOf(\App\Factories\GroupBookingFactory::class, $bookingFactoryClass);
+        $bookingFactoryClass = BookingFactory::resolve($data['type']);
+        $this->assertInstanceOf(GroupBookingFactory::class, $bookingFactoryClass);
     }
-
-
-
 }

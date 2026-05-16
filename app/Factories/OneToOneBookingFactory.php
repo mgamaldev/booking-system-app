@@ -3,32 +3,30 @@
 namespace App\Factories;
 
 use App\Models\Booking;
-use App\Models\Slot;
 
-class OneToOneBookingFactory implements BookingFactoryInterface {
+class OneToOneBookingFactory implements BookingFactoryInterface
+{
     /**
      * @throws \Exception
      */
     public function create(array $data): Booking
     {
-        if (!$this->isSlotAvailability($data['slot_id'])) {
+        if (! $this->isSlotAvailability($data['slot_id'])) {
             throw new \Exception('Slot is not available');
         }
 
-       $this->checkSlotAndCustomerCount($data['customer_id'], $data['slot_id']);
+        $this->checkSlotAndCustomerCount($data['customer_id'], $data['slot_id']);
 
-        return  Booking::create($data);
+        return Booking::create($data);
 
     }
 
-
-
-    private function isSlotAvailability($slotId) {
-        return Booking::whereHas('slot' , function ($query) use ($slotId) {
-            return  $query->where('id' , $slotId);
+    private function isSlotAvailability($slotId)
+    {
+        return Booking::whereHas('slot', function ($query) use ($slotId) {
+            return $query->where('id', $slotId);
         })->doesntExist();
     }
-
 
     /**
      * @throws \Exception

@@ -15,8 +15,8 @@ class BookingQueryBuilder extends Builder
 
     public function upcoming(): self
     {
-        return $this->whereHas('slot' , function ($query) {
-              return  $query->where('date' , '>=' , now());
+        return $this->whereHas('slot', function ($query) {
+            return $query->where('date', '>=', now());
         });
     }
 
