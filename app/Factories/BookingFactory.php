@@ -2,13 +2,12 @@
 
 namespace App\Factories;
 
-// use App\Exceptions\DomainException;
-use _PHPStan_a8704accb\Nette\Neon\Exception;
+use InvalidArgumentException;
 
 class BookingFactory
 {
     /**
-     * @throws Exception
+     * @throws InvalidArgumentException
      */
     public static function resolve(string $type): BookingFactoryInterface
     {
@@ -16,7 +15,7 @@ class BookingFactory
             'one-on-one' => new OneToOneBookingFactory,
             'group' => new GroupBookingFactory,
             'recurring' => new RecurringBookingFactory,
-            default => throw new Exception('Unsupported booking type'),
+            default => throw new InvalidArgumentException('Unsupported booking type'),
         };
     }
 }

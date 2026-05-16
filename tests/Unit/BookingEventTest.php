@@ -30,8 +30,6 @@ class BookingEventTest extends TestCase
         Event::assertNotDispatched(BookingConfirmed::class);
     }
 
-
-
     /**
      * @throws \Throwable
      */
