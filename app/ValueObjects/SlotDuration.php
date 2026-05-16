@@ -6,7 +6,7 @@ use Carbon\CarbonInterface;
 
 final readonly class SlotDuration
 {
-    public function __construct(public int $minutes)
+    public function __construct(public int|float $minutes)
     {
         if ($minutes <= 0) {
             throw new \InvalidArgumentException('Slot duration cannot be negative');

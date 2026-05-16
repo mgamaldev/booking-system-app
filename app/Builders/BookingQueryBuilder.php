@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\AbstractPaginator;
 use Illuminate\Pagination\LengthAwarePaginator;
 
+/**
+ * @extends Builder<\App\Models\Booking>
+ */
 class BookingQueryBuilder extends Builder
 {
     public function confirmed(): self
