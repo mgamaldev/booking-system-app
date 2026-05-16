@@ -2,9 +2,13 @@
 
 namespace App\Providers;
 
+use App\Events\BookingConfirmed;
+use App\Listeners\BookingConfirmationNotificationListener;
+use App\Listeners\LogConfirmedBooking;
 use App\Repositories\BookingRepositoryInterface;
 use App\Repositories\NullBookingRepository;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -24,6 +28,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Event::listen(BookingConfirmed::class, [BookingConfirmationNotificationListener::class, 'handle']);
+        Event::listen(BookingConfirmed::class, [LogConfirmedBooking::class, 'handle']);
+
     }
 }

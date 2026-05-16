@@ -20,7 +20,7 @@ class Booking extends Model
             'resource_id',
             'slot_id',
             'status',
-            'star_date',
+            'start_date',
             'end_date',
             'recurrence_rule',
             'max_participants',

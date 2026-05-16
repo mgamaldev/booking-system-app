@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Events\BookingConfirmed;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateBookingRequest;
 use App\Models\Booking;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
@@ -13,20 +13,24 @@ class BookingController extends Controller
     /**
      * @throws \Throwable
      */
-    public function update(Request $request, Booking $booking)
+    public function update(UpdateBookingRequest $request, Booking $booking)
     {
-        DB::transaction(function () use ($request, $booking) {
-            $booking->update($request->all());
 
-            if ($booking->status === 'confirmed') {
-                BookingConfirmed::dispatch($booking);
-            }
-        });
+        try {
+            DB::beginTransaction();
+            $booking->update($request->validated());
+            DB::commit();
+            BookingConfirmed::dispatchIf($booking->status == 'confirmed', $booking)
+                ->afterCommit();
 
-        return response()->json([
-            'success' => true,
-            'booking' => $booking->fresh(),
-            'message' => 'Booking updated successfully',
-        ]);
+            return response()->json([
+                'success' => true,
+                'booking' => $booking->fresh(),
+                'message' => 'Booking updated successfully',
+            ]);
+        } catch (\Throwable $e) {
+            throw new \Exception($e->getMessage());
+        }
+
     }
 }
