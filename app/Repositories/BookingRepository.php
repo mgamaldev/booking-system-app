@@ -10,7 +10,10 @@ class BookingRepository implements BookingRepositoryInterface
 {
     public function create(array $data): Booking
     {
-        return Booking::create($data);
+        /** @var Booking $booking */
+        $booking = Booking::query()->create($data);
+
+        return $booking;
     }
 
     public function update(array $data, int $id): bool
@@ -30,11 +33,17 @@ class BookingRepository implements BookingRepositoryInterface
 
     public function find(int $id): Booking
     {
-        return Booking::query()->findOrFail($id);
+        /** @var Booking|null $booking */
+        $booking = Booking::query()->findOrFail($id);
+
+        return $booking;
     }
 
     public function findBy(string $columnName, $value): Booking
     {
-        return Booking::query()->where($columnName, $value)->firstOrFail();
+        /** @var Booking|null $booking */
+        $booking = Booking::query()->where($columnName, $value)->first();
+
+        return $booking;
     }
 }
