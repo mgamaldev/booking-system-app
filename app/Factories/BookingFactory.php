@@ -13,7 +13,7 @@ class BookingFactory
     {
         return match ($type) {
             'one-on-one' => new OneToOneBookingFactory,
-            'group' => new GroupBookingFactory,
+            'group' => new GroupBookingFactory(),
             'recurring' => new RecurringBookingFactory,
             default => throw new InvalidArgumentException('Unsupported booking type'),
         };
