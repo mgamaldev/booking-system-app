@@ -18,13 +18,14 @@ class GroupBookingFactory implements BookingFactoryInterface
 
         $status = $this->determineGroupBookingStatus($slot, $data);
 
-        $booking =   Booking::create([
+        $booking = Booking::create([
             'customer_id' => $data['customer_id'],
             'slot_id' => $data['slot_id'],
             'type' => 'group',
             'status' => $status,
             'max_participants' => $data['max_participants'],
         ]);
+
         return $booking;
     }
 

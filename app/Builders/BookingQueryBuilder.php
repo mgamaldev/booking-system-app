@@ -2,12 +2,13 @@
 
 namespace App\Builders;
 
+use App\Models\Booking;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\AbstractPaginator;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
- * @extends Builder<\App\Models\Booking>
+ * @extends Builder<Booking>
  */
 class BookingQueryBuilder extends Builder
 {
