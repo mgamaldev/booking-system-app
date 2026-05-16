@@ -4,12 +4,11 @@ namespace App\Repositories;
 
 use App\Models\Booking;
 use App\Repositories\Interfaces\BookingRepositoryInterface;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class BookingRepository implements BookingRepositoryInterface
 {
-    public function create(array $data): Booking|Model
+    public function create(array $data): Booking
     {
         return Booking::create($data);
     }
@@ -29,12 +28,12 @@ class BookingRepository implements BookingRepositoryInterface
         return Booking::query()->paginate();
     }
 
-    public function find(int $id): Booking|Model
+    public function find(int $id): Booking
     {
         return Booking::query()->findOrFail($id);
     }
 
-    public function findBy(string $columnName, $value): Booking|Model
+    public function findBy(string $columnName, $value): Booking
     {
         return Booking::query()->where($columnName, $value)->firstOrFail();
     }
