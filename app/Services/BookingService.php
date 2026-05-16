@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Services;
 
 use App\Models\Booking;
 use App\Repositories\Interfaces\BookingRepositoryInterface;
@@ -8,7 +8,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class BookingService
 {
-    public function __construct(public BookingRepositoryInterface $bookingRepository) {}
+    public function __construct(private BookingRepositoryInterface $bookingRepository) {}
 
     public function createBooking(array $data): Booking
     {

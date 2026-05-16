@@ -2,19 +2,19 @@
 
 namespace Tests\Unit;
 
-use App\BookingService;
 use App\Models\Booking;
 use App\Models\Customer;
 use App\Models\Resource;
 use App\Models\Slot;
 use App\Repositories\Interfaces\BookingRepositoryInterface;
+use App\Services\BookingService;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Tests\TestCase;
 
-class BooingRepositoryAndServiceTest extends TestCase
+class BookingRepositoryAndServiceTest extends TestCase
 {
     use RefreshDatabase;
 
