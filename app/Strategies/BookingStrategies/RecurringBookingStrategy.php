@@ -11,6 +11,7 @@ class RecurringBookingStrategy implements BookingStrategyInterface
 {
     public function createBooking(array $data): Booking
     {
+        /** @var Booking $booking */
         if (! isset($data['recurrence_rule'], $data['end_date'])) {
             throw new \Exception('Recurrence rule and end date are required.');
         }

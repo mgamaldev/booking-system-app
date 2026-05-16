@@ -19,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         App::bind(BookingRepositoryInterface::class, BookingRepository::class);
-        App::bind(BookingStrategyInterface::class, fn() => BookingStrategyResolver::resolve(request('type')));
+        App::bind(BookingStrategyInterface::class, fn () => BookingStrategyResolver::resolve(request('type')));
     }
 
     /**

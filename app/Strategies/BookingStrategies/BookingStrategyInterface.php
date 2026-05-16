@@ -6,5 +6,5 @@ use App\Models\Booking;
 
 interface BookingStrategyInterface
 {
-     public function createBooking(array $data): Booking;
+    public function createBooking(array $data): Booking;
 }

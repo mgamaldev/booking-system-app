@@ -9,12 +9,15 @@ class OneToOneBookingStrategy implements BookingStrategyInterface
     /**
      * @throws \Exception
      */
+
+    /**
+     * @throws \Exception
+     */
     public function createBooking(array $data): Booking
     {
         if (! $this->isSlotAvailability($data['slot_id'])) {
             throw new \Exception('Slot is not available');
         }
-
 
         return Booking::create($data);
 
@@ -26,7 +29,4 @@ class OneToOneBookingStrategy implements BookingStrategyInterface
             return $query->where('id', $slotId);
         })->doesntExist();
     }
-
-
-
 }

@@ -8,6 +8,7 @@ use Exception;
 
 class GroupBookingStrategy implements BookingStrategyInterface
 {
+    /** @retrun  Booking $booking */
     public function createBooking(array $data): Booking
     {
         if (! isset($data['max_participants'])) {

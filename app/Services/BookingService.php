@@ -12,6 +12,7 @@ class BookingService
 
     public function createBooking(array $data): Booking
     {
+
         return $this->bookingRepository->create($data);
     }
 
