@@ -15,13 +15,18 @@ class BookingController extends Controller
      */
     public function update(UpdateBookingRequest $request, Booking $booking)
     {
+        DB::beginTransaction();
 
         try {
-            DB::beginTransaction();
             $booking->update($request->validated());
+
+            $booking->refresh();
+
+            if ($booking->status === 'confirmed') {
+                BookingConfirmed::dispatch($booking);
+            }
+
             DB::commit();
-            BookingConfirmed::dispatchIf($booking->status == 'confirmed', $booking)
-                ->afterCommit();
 
             return response()->json([
                 'success' => true,
@@ -29,8 +34,8 @@ class BookingController extends Controller
                 'message' => 'Booking updated successfully',
             ]);
         } catch (\Throwable $e) {
-            throw new \Exception($e->getMessage());
+            DB::rollBack();
+            throw $e;
         }
-
     }
 }
