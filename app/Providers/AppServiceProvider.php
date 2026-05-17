@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Events\BookingConfirmed;
+use App\Listeners\BookingConfirmationNotificationListener;
+use App\Listeners\LogConfirmedBooking;
 use App\Repositories\BookingRepository;
 use App\Repositories\Interfaces\BookingRepositoryInterface;
 use Illuminate\Support\Facades\App;
