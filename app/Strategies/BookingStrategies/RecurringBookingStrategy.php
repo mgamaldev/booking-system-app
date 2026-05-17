@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\DB;
 
 class RecurringBookingStrategy implements BookingStrategyInterface
 {
+    /**
+     * @throws \Exception
+     * @throws \Throwable
+     */
     public function createBooking(array $data): Booking
     {
 
@@ -25,8 +29,15 @@ class RecurringBookingStrategy implements BookingStrategyInterface
 
             $firstBooking = null;
 
+            if (count($dates) <= 1) {
+                throw new \Exception('No valid date range found for the given recurrence rule.');
+            }
+
             foreach ($dates as $date) {
-                $slot = Slot::whereDate('date', $date)->where('start_time', $data['start_time'])->first();
+                $slot = Slot::firstOrCreate([
+                    'date' => $date,
+                    'start_time' => $data['start_time'],
+                ]);
 
                 $alreadyBooked = Booking::where('slot_id', $slot->id)
                     ->whereIn('status', ['confirmed', 'pending'])
@@ -43,7 +54,6 @@ class RecurringBookingStrategy implements BookingStrategyInterface
                     'status' => 'confirmed',
                     'recurrence_rule' => $data['recurrence_rule'],
                     'end_date' => $data['end_date'],
-                    'resource_id' => $data['resource_id'],
                 ]);
 
                 $firstBooking ??= $booking;
@@ -59,12 +69,17 @@ class RecurringBookingStrategy implements BookingStrategyInterface
 
         $current = $startDate->copy();
 
+        if ($endDate->lessThanOrEqualTo($startDate)) {
+            throw new \Exception('End date must be after start date for recurring booking.');
+        }
+
         while ($current->lte($endDate)) {
             $dates[] = $current->copy();
 
             match ($rule) {
                 'weekly' => $current->addWeek(),
                 'biweekly' => $current->addWeeks(2),
+                'monthly' => $current->addMonth(),
                 default => throw new \Exception('Invalid recurrence rule.'),
             };
         }

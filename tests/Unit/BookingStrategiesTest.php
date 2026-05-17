@@ -62,4 +62,18 @@ class BookingStrategiesTest extends TestCase
 
         $this->assertDatabaseHas('bookings', ['id' => $booking->id, 'type' => 'one-on-one']);
     }
+
+    public function test_recurring_booking_strategy_throw_exception_with_invalid_dates()
+    {
+        $data = [
+            'start_date' => '2024-01-01',
+            'end_date' => '2024-01-01',
+            'recurrence_rule' => 'weekly',
+            'start_time' => '13:00:00',
+        ];
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('End date must be after start date for recurring booking.');
+        $strategy = BookingStrategyResolver::resolve('recurring');
+        $strategy->createBooking($data);
+    }
 }
