@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Booking;
 use App\Repositories\Interfaces\BookingRepositoryInterface;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class BookingRepository implements BookingRepositoryInterface
@@ -39,10 +40,15 @@ class BookingRepository implements BookingRepositoryInterface
         return $booking;
     }
 
-    public function findBy(string $columnName, $value): Booking
+    /**
+     * @throws ModelNotFoundException
+     */
+    public function findBy(string $columnName, mixed $value): Booking
     {
-        /** @var Booking|null $booking */
-        $booking = Booking::query()->where($columnName, $value)->first();
+        /** @var Booking $booking */
+        $booking = Booking::query()
+            ->where($columnName, $value)
+            ->firstOrFail();
 
         return $booking;
     }
