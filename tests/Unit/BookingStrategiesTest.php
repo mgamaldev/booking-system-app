@@ -7,6 +7,7 @@ use App\Strategies\BookingStrategies\BookingStrategyResolver;
 use App\Strategies\BookingStrategies\GroupBookingStrategy;
 use App\Strategies\BookingStrategies\OneToOneBookingStrategy;
 use App\Strategies\BookingStrategies\RecurringBookingStrategy;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -75,5 +76,31 @@ class BookingStrategiesTest extends TestCase
         $this->expectExceptionMessage('End date must be after start date for recurring booking.');
         $strategy = BookingStrategyResolver::resolve('recurring');
         $strategy->createBooking($data);
+    }
+
+    public function test_recurring_booking_with_monthly_case(): void
+    {
+
+        $data = [
+            'start_date' => '2024-01-01',
+            'end_date' => '2024-10-01',
+            'recurrence_rule' => 'monthly',
+            'start_time' => '13:00:00',
+            'end_time' => '14:00:00',
+            'status' => 'pending',
+            'customer_id' => Customer::factory()->create()->id,
+            'resource_id' => Resource::factory()->create()->id,
+        ];
+
+        $strategy = BookingStrategyResolver::resolve('recurring');
+
+        $booking = $strategy->createBooking($data);
+        $dates = $strategy->generateDates(Carbon::parse($data['start_date']), Carbon::parse($data['end_date']), 'monthly');
+
+        $dates_count = count($dates);
+
+        $this->assertEquals($dates_count, $booking->count());
+
+        $this->assertNotNull($booking);
     }
 }

@@ -16,8 +16,8 @@ class RecurringBookingStrategy implements BookingStrategyInterface
     public function createBooking(array $data): Booking
     {
 
-        if (! isset($data['recurrence_rule'], $data['end_date'])) {
-            throw new \Exception('Recurrence rule and end date are required.');
+        if (! isset($data['recurrence_rule'], $data['start_date'], $data['end_date'])) {
+            throw new \Exception('Recurrence rule and dates are required.');
         }
 
         return DB::transaction(function () use ($data) {
@@ -27,9 +27,13 @@ class RecurringBookingStrategy implements BookingStrategyInterface
                 $data['recurrence_rule']
             );
 
+            if (! isset($data['start_time'], $data['end_time'], $data['customer_id'], $data['resource_id'])) {
+                throw new \Exception('Times, customer, and resource are required for recurring booking.');
+            }
+
             $firstBooking = null;
 
-            if (count($dates) <= 1) {
+            if (empty($dates)) {
                 throw new \Exception('No valid date range found for the given recurrence rule.');
             }
 
@@ -37,6 +41,8 @@ class RecurringBookingStrategy implements BookingStrategyInterface
                 $slot = Slot::firstOrCreate([
                     'date' => $date,
                     'start_time' => $data['start_time'],
+                    'end_time' => $data['end_time'],
+                    'status' => 'active',
                 ]);
 
                 $alreadyBooked = Booking::where('slot_id', $slot->id)
@@ -49,6 +55,7 @@ class RecurringBookingStrategy implements BookingStrategyInterface
 
                 $booking = Booking::create([
                     'customer_id' => $data['customer_id'],
+                    'resource_id' => $data['resource_id'],
                     'slot_id' => $slot->id,
                     'type' => 'recurring',
                     'status' => 'confirmed',
@@ -63,7 +70,7 @@ class RecurringBookingStrategy implements BookingStrategyInterface
         });
     }
 
-    private function generateDates(Carbon $startDate, Carbon $endDate, string $rule): array
+    public function generateDates(Carbon $startDate, Carbon $endDate, string $rule): array
     {
         $dates = [];
 
