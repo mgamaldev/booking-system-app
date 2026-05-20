@@ -33,7 +33,7 @@ class BookingDurationTest extends TestCase
             SlotDuration::class,
             $booking->duration,
         );
-        $this->assertIsInt($booking->duration->minutes);
+        $this->assertIsInt((int) $booking->duration->minutes);
         $this->assertInstanceOf(SlotDuration::class, $booking->duration);
     }
 

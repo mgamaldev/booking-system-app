@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Factories;
+namespace App\Strategies\BookingStrategies;
 
 use App\Models\Booking;
 use App\Models\Slot;
 use Exception;
 
-class GroupBookingFactory implements BookingFactoryInterface
+class GroupBookingStrategy implements BookingStrategyInterface
 {
-    public function create(array|string $data): Booking
+    /** @retrun  Booking $booking */
+    public function createBooking(array $data): Booking
     {
         if (! isset($data['max_participants'])) {
             throw new Exception('Max participants is required for group booking.');
@@ -18,15 +19,14 @@ class GroupBookingFactory implements BookingFactoryInterface
 
         $status = $this->determineGroupBookingStatus($slot, $data);
 
-        $booking = Booking::create([
+        return Booking::create([
             'customer_id' => $data['customer_id'],
+            'resource_id' => $data['resource_id'],
             'slot_id' => $data['slot_id'],
             'type' => 'group',
             'status' => $status,
             'max_participants' => $data['max_participants'],
         ]);
-
-        return $booking;
     }
 
     private function determineGroupBookingStatus(Slot $slot, array $data): string
