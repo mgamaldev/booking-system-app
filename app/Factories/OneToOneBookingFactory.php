@@ -21,11 +21,12 @@ class OneToOneBookingFactory implements BookingFactoryInterface
 
     }
 
-    private function isSlotAvailability($slotId)
+    private function isSlotAvailability($slotId): bool
     {
-        return Booking::whereHas('slot', function ($query) use ($slotId) {
-            return $query->where('id', $slotId);
-        })->doesntExist();
+        return Booking::query()
+            ->where('slot_id', $slotId)
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->doesntExist();
     }
 
     /**
