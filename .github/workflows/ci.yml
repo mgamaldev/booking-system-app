@@ -20,7 +20,7 @@ jobs:
         run: composer install --no-interaction --prefer-dist
 
       - name: Run Pint
-        run: vendor/bin/pint --test
+        run: ./vendor/bin/pest
 
   analyse:
     name: Static Analysis (PHPStan)

@@ -24,7 +24,7 @@ function oneToOneBookingData(?Slot $slot = null, ?Customer $customer = null, ?Re
 test('it creates a booking when the slot is available', function () {
     $data = oneToOneBookingData();
 
-    $booking = (new OneToOneBookingStrategy())->createBooking($data);
+    $booking = (new OneToOneBookingStrategy)->createBooking($data);
 
     expect($booking)
         ->type->toBe('one-on-one')
@@ -46,12 +46,12 @@ test('it rejects an unavailable slot', function (string $blockingStatus) {
         'status' => $blockingStatus,
     ]);
 
-    $strategy = new OneToOneBookingStrategy();
+    $strategy = new OneToOneBookingStrategy;
 
     expect(fn () => $strategy->createBooking(oneToOneBookingData($slot)))
-        ->toThrow(Exception::class, 'Slot is not available');
+        ->toThrow(Exception::class, 'Slot is not available')
+        ->and(Booking::query()->where('slot_id', $slot->id)->count())->toBe(1);
 
-    expect(Booking::query()->where('slot_id', $slot->id)->count())->toBe(1);
 })->with(['pending', 'confirmed']);
 
 test('it allows a slot when the existing booking is canceled', function () {
@@ -63,8 +63,8 @@ test('it allows a slot when the existing booking is canceled', function () {
         'status' => 'canceled',
     ]);
 
-    $booking = (new OneToOneBookingStrategy())->createBooking(oneToOneBookingData($slot));
+    $booking = (new OneToOneBookingStrategy)->createBooking(oneToOneBookingData($slot));
 
-    expect($booking->slot_id)->toBe($slot->id);
-    expect(Booking::query()->where('slot_id', $slot->id)->count())->toBe(2);
+    expect($booking->slot_id)->toBe($slot->id)
+        ->and(Booking::query()->where('slot_id', $slot->id)->count())->toBe(2);
 });
