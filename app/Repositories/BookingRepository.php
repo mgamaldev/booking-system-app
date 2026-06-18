@@ -3,11 +3,12 @@
 namespace App\Repositories;
 
 use App\Models\Booking;
+use App\Repositories\Interfaces\BookingCancellationRepositoryInterface;
 use App\Repositories\Interfaces\BookingRepositoryInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-class BookingRepository implements BookingRepositoryInterface
+class BookingRepository implements BookingCancellationRepositoryInterface, BookingRepositoryInterface
 {
     public function create(array $data): Booking
     {
@@ -51,5 +52,24 @@ class BookingRepository implements BookingRepositoryInterface
             ->firstOrFail();
 
         return $booking;
+    }
+
+    public function findForCancellation(int $bookingId): Booking
+    {
+        /** @var Booking $booking */
+        $booking = Booking::query()
+            ->with('slot')
+            ->findOrFail($bookingId);
+
+        return $booking;
+    }
+
+    public function cancel(Booking $booking): Booking
+    {
+        $booking->update([
+            'status' => 'canceled',
+        ]);
+
+        return $booking->refresh();
     }
 }

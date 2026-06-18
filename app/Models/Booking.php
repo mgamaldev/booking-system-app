@@ -29,6 +29,7 @@ class Booking extends Model
             'recurrence_rule',
             'max_participants',
             'type',
+            'id',
         ];
 
     protected $with = ['slot', 'resource', 'customer'];

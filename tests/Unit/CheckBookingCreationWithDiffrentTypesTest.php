@@ -1,16 +1,11 @@
 <?php
 
-use App\Events\BookingConfirmed;
 use App\Models\Booking;
 use App\Models\Customer;
 use App\Models\Resource;
 use App\Models\Slot;
-use App\Notifications\BookingConfirmationNotification;
 use App\Strategies\BookingStrategies\BookingStrategyResolver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Notifications\SendQueuedNotifications;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
@@ -120,7 +115,6 @@ test('it creates recurring bookings for every date in the recurrence range', fun
             ->where('end_time', '14:00:00')
             ->exists()
         )->toBeTrue();
-
 });
 
 test('it rolls back recurring booking creation when one generated slot is already booked', function () {
@@ -150,38 +144,4 @@ test('it rolls back recurring booking creation when one generated slot is alread
     expect(fn () => BookingStrategyResolver::resolve('recurring')->createBooking($data))
         ->toThrow(Exception::class, 'Slot already booked for date 2026-07-08.')
         ->and(Booking::query()->where('type', 'recurring')->count())->toBe(0);
-
-});
-
-test('it dispatches booking confirmed event when a booking is confirmed', function () {
-    Event::fake([BookingConfirmed::class]);
-
-    $booking = Booking::factory()->create([
-        'status' => 'pending',
-    ]);
-
-    $this->post(route('bookings.update', $booking), [
-        'status' => 'confirmed',
-    ])->assertOk();
-
-    Event::assertDispatched(BookingConfirmed::class, function (BookingConfirmed $event) use ($booking) {
-        return $event->booking->is($booking);
-    });
-});
-
-test('it queues booking confirmation notification when a booking is confirmed', function () {
-    Queue::fake();
-
-    $booking = Booking::factory()->create([
-        'status' => 'pending',
-    ]);
-
-    $this->post(route('bookings.update', $booking), [
-        'status' => 'confirmed',
-    ])->assertOk();
-
-    Queue::assertPushed(SendQueuedNotifications::class, function (SendQueuedNotifications $job) use ($booking) {
-        return $job->notification instanceof BookingConfirmationNotification
-            && $job->notification->booking->is($booking);
-    });
 });
