@@ -93,14 +93,10 @@ class BookingCancellationService
             return (float) $setting->fee_amount;
         }
 
-        if ($setting->fee_type === 'percentage') {
-            if ($baseAmount === null) {
-                throw new InvalidArgumentException('Base amount is required for percentage cancellation fees.');
-            }
-
-            return round($baseAmount * ((float) $setting->fee_amount / 100), 2);
+        if ($baseAmount === null) {
+            throw new InvalidArgumentException('Base amount is required for percentage cancellation fees.');
         }
 
-        throw new InvalidArgumentException('Unsupported cancellation fee type.');
+        return round($baseAmount * ((float) $setting->fee_amount / 100), 2);
     }
 }
