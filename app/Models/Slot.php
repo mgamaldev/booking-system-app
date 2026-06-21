@@ -23,6 +23,7 @@ class Slot extends Model
         'end_time',
         'date',
         'status',
+        'id',
     ];
 
     protected $casts = [

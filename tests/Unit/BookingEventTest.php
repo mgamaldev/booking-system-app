@@ -4,9 +4,12 @@ namespace Tests\Unit;
 
 use App\Events\BookingConfirmed;
 use App\Models\Booking;
+use App\Notifications\BookingConfirmationNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class BookingEventTest extends TestCase
@@ -15,10 +18,16 @@ class BookingEventTest extends TestCase
 
     public function test_booking_event_is_fired_when_booking_is_updated()
     {
+        Queue::fake();
 
         $booking = Booking::factory()->create();
-        $this->post(route('bookings.update', $booking), ['status' => 'confirmed']);
-        $this->assertDatabaseHas('notifications', ['notifiable_id' => $booking->customer_id]);
+        $this->post(route('bookings.update', $booking), ['status' => 'confirmed'])
+            ->assertOk();
+
+        Queue::assertPushed(SendQueuedNotifications::class, function (SendQueuedNotifications $job) use ($booking) {
+            return $job->notification instanceof BookingConfirmationNotification
+                && $job->notification->booking->is($booking);
+        });
 
     }
 

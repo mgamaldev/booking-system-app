@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('bookings', function (Blueprint $table) {
-            $table->enum('type', ['one-on-one', 'recurring', 'group '])->nullable();
+            $table->enum('type', ['one-on-one', 'recurring', 'group'])->nullable();
             $table->integer('max_participants')->nullable();
             $table->enum('recurrence_rule', ['weekly', 'biweekly', 'monthly'])->nullable();
             $table->date('start_date')->nullable();
