@@ -5,8 +5,11 @@ namespace App\Repositories;
 use App\Models\Booking;
 use App\Repositories\Interfaces\BookingCancellationRepositoryInterface;
 use App\Repositories\Interfaces\BookingRepositoryInterface;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 class BookingRepository implements BookingCancellationRepositoryInterface, BookingRepositoryInterface
 {
@@ -52,6 +55,49 @@ class BookingRepository implements BookingCancellationRepositoryInterface, Booki
             ->firstOrFail();
 
         return $booking;
+    }
+
+    public function getBookingForReminder(int $daysBeforeReminder): Collection
+    {
+        $reminderDate = Carbon::now()->addDays($daysBeforeReminder)->toDateString();
+
+        return Booking::query()
+            ->confirmed()
+            ->whereHas('slot', function ($query) use ($reminderDate) {
+                $query->whereDate('date', $reminderDate);
+            })
+            ->with(['customer', 'slot'])
+            ->get();
+    }
+
+    public function claimBookingReminders(int $daysBeforeReminder): Collection
+    {
+        $reminderDate = Carbon::now()->addDays($daysBeforeReminder)->toDateString();
+        $now = Carbon::now();
+
+        return DB::transaction(function () use ($reminderDate, $now) {
+            $bookings = Booking::query()
+                ->confirmed()
+                ->whereNull('reminder_sent_at')
+                ->whereHas('slot', function ($query) use ($reminderDate) {
+                    $query->whereDate('date', $reminderDate);
+                })
+                ->lockForUpdate()
+                ->with(['customer', 'slot'])
+                ->get();
+
+            if ($bookings->isEmpty()) {
+                return $bookings;
+            }
+
+            Booking::query()
+                ->whereIn('id', $bookings->pluck('id'))
+                ->update(['reminder_sent_at' => $now]);
+
+            return $bookings->each(function (Booking $booking) use ($now) {
+                $booking->reminder_sent_at = $now;
+            });
+        });
     }
 
     public function findForCancellation(int $bookingId): Booking

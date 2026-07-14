@@ -24,6 +24,7 @@ class Booking extends Model
             'resource_id',
             'slot_id',
             'status',
+            'reminder_sent_at',
             'start_date',
             'end_date',
             'recurrence_rule',
@@ -38,6 +39,7 @@ class Booking extends Model
 
     protected $casts = [
         'status' => 'string',
+        'reminder_sent_at' => 'datetime',
     ];
 
     public function customer(): BelongsTo
