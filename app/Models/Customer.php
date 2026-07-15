@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * @property string $email
+ * @property string $name
+ */
 class Customer extends Model
 {
     /** @use HasFactory<CustomerFactory> */
@@ -22,6 +26,9 @@ class Customer extends Model
         'address',
     ];
 
+    /**
+     * @return HasMany<Booking, $this>
+     */
     public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class);
