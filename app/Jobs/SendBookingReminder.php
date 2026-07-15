@@ -2,8 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Services\BookingService;
 use App\Notifications\BookingReminderNotification;
+use App\Services\BookingService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Notification;

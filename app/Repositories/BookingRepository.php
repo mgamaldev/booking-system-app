@@ -6,10 +6,10 @@ use App\Models\Booking;
 use App\Repositories\Interfaces\BookingCancellationRepositoryInterface;
 use App\Repositories\Interfaces\BookingRepositoryInterface;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class BookingRepository implements BookingCancellationRepositoryInterface, BookingRepositoryInterface
 {
