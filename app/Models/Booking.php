@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
+ * @property int $customer_id
+ * @property int $slot_id
+ * @property-read Customer $customer
  * @property-read Slot $slot
  */
 class Booking extends Model
@@ -40,16 +43,25 @@ class Booking extends Model
         'status' => 'string',
     ];
 
+    /**
+     * @return BelongsTo<Customer, $this>
+     */
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
     }
 
+    /**
+     * @return BelongsTo<\App\Models\Resource, $this>
+     */
     public function resource(): BelongsTo
     {
         return $this->belongsTo(Resource::class);
     }
 
+    /**
+     * @return BelongsTo<Slot, $this>
+     */
     public function slot(): BelongsTo
     {
         return $this->belongsTo(Slot::class);

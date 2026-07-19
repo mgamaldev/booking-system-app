@@ -5,11 +5,13 @@ namespace App\Providers;
 use App\Events\BookingConfirmed;
 use App\Listeners\BookingConfirmationNotificationListener;
 use App\Listeners\LogConfirmedBooking;
+use App\Listeners\SendFailedJobAlert;
 use App\Repositories\BookingRepository;
 use App\Repositories\Interfaces\BookingCancellationRepositoryInterface;
 use App\Repositories\Interfaces\BookingRepositoryInterface;
 use App\Strategies\BookingStrategies\BookingStrategyInterface;
 use App\Strategies\BookingStrategies\BookingStrategyResolver;
+use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -35,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Event::listen(BookingConfirmed::class, [BookingConfirmationNotificationListener::class, 'handle']);
         Event::listen(BookingConfirmed::class, [LogConfirmedBooking::class, 'handle']);
+        Event::listen(JobFailed::class, [SendFailedJobAlert::class, 'handle']);
 
     }
 }
