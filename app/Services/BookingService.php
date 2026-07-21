@@ -13,7 +13,9 @@ class BookingService
 
     public function createBooking(array $data): Booking
     {
-        return BookingStrategyResolver::resolve($data['type'])->createBooking($data);
+        $type = $data['type'] ?? 'one-on-one';
+
+        return BookingStrategyResolver::resolve($type)->createBooking($data);
     }
 
     public function updateBooking(array $data, int $id): bool
