@@ -21,7 +21,6 @@ class StoreBookingRequest extends FormRequest
             'customer_id' => ['required', 'integer', 'exists:customers,id'],
             'resource_id' => ['required', 'integer', 'exists:resources,id'],
             'slot_id' => ['required', 'integer', 'exists:slots,id'],
-            'status' => ['required', Rule::in(['pending', 'confirmed', 'canceled'])],
             'type' => ['sometimes', 'nullable', Rule::in(['one-on-one', 'recurring', 'group'])],
             'max_participants' => ['sometimes', 'nullable', 'integer', 'min:1'],
             'recurrence_rule' => ['sometimes', 'nullable', Rule::in(['weekly', 'biweekly', 'monthly'])],

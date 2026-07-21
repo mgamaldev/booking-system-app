@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Booking;
 use App\Repositories\Interfaces\BookingRepositoryInterface;
+use App\Strategies\BookingStrategies\BookingStrategyResolver;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class BookingService
@@ -12,8 +13,7 @@ class BookingService
 
     public function createBooking(array $data): Booking
     {
-
-        return $this->bookingRepository->create($data);
+        return BookingStrategyResolver::resolve($data['type'])->createBooking($data);
     }
 
     public function updateBooking(array $data, int $id): bool

@@ -30,7 +30,7 @@ test('it dispatches booking confirmation job after a booking is confirmed', func
     });
 });
 
-test('it dispatches booking confirmation job for the booking created through the api', function () {
+test('it creates api bookings through the service as pending and does not dispatch confirmation', function () {
     Queue::fake();
 
     $response = $this->postJson(route('bookings.store'), [
@@ -43,8 +43,31 @@ test('it dispatches booking confirmation job for the booking created through the
 
     $booking = Booking::query()->findOrFail($response->json('booking.id'));
 
-    Queue::assertPushed(SendBookingConfirmation::class, function (SendBookingConfirmation $job) use ($booking) {
-        return $job->booking->is($booking)
-            && $job->afterCommit === true;
-    });
+    expect($booking->status)->toBe('pending');
+    Queue::assertNotPushed(SendBookingConfirmation::class);
+});
+
+test('it rejects api booking creation when the slot is already unavailable', function () {
+    Queue::fake();
+
+    $slot = Slot::factory()->create();
+
+    Booking::factory()->create([
+        'slot_id' => $slot->id,
+        'status' => 'confirmed',
+        'type' => 'one-on-one',
+    ]);
+
+    $this->postJson(route('bookings.store'), [
+        'customer_id' => Customer::factory()->create()->id,
+        'resource_id' => Resource::factory()->create()->id,
+        'slot_id' => $slot->id,
+        'status' => 'confirmed',
+        'type' => 'one-on-one',
+    ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('slot_id');
+
+    expect(Booking::query()->where('slot_id', $slot->id)->count())->toBe(1);
+    Queue::assertNotPushed(SendBookingConfirmation::class);
 });
