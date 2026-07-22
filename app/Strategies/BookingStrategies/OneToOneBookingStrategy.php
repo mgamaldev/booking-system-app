@@ -15,6 +15,11 @@ class OneToOneBookingStrategy implements BookingStrategyInterface
      */
     public function createBooking(array $data): Booking
     {
+        $data = array_merge([
+            'type' => 'one-on-one',
+            'status' => 'pending',
+        ], $data);
+
         if (! $this->isSlotAvailability($data['slot_id'])) {
             throw new \Exception('Slot is not available');
         }
