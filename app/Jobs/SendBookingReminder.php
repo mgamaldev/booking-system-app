@@ -26,6 +26,8 @@ class SendBookingReminder implements ShouldQueue
 
         foreach ($bookings as $booking) {
             Notification::send($booking->customer, new BookingReminderNotification($booking));
+
+            $bookingService->markReminderAsSent($booking);
         }
     }
 }

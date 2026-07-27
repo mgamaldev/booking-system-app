@@ -9,7 +9,6 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 
 class BookingRepository implements BookingCancellationRepositoryInterface, BookingRepositoryInterface
 {
@@ -73,31 +72,22 @@ class BookingRepository implements BookingCancellationRepositoryInterface, Booki
     public function claimBookingReminders(int $daysBeforeReminder): Collection
     {
         $reminderDate = Carbon::now()->addDays($daysBeforeReminder)->toDateString();
-        $now = Carbon::now();
 
-        return DB::transaction(function () use ($reminderDate, $now) {
-            $bookings = Booking::query()
-                ->confirmed()
-                ->whereNull('reminder_sent_at')
-                ->whereHas('slot', function ($query) use ($reminderDate) {
-                    $query->whereDate('date', $reminderDate);
-                })
-                ->lockForUpdate()
-                ->with(['customer', 'slot'])
-                ->get();
+        return Booking::query()
+            ->confirmed()
+            ->whereNull('reminder_sent_at')
+            ->whereHas('slot', function ($query) use ($reminderDate) {
+                $query->whereDate('date', $reminderDate);
+            })
+            ->with(['customer', 'slot'])
+            ->get();
+    }
 
-            if ($bookings->isEmpty()) {
-                return $bookings;
-            }
-
-            Booking::query()
-                ->whereIn('id', $bookings->pluck('id'))
-                ->update(['reminder_sent_at' => $now]);
-
-            return $bookings->each(function (Booking $booking) use ($now) {
-                $booking->reminder_sent_at = $now;
-            });
-        });
+    public function markReminderAsSent(Booking $booking): bool
+    {
+        return $booking->update([
+            'reminder_sent_at' => Carbon::now(),
+        ]);
     }
 
     public function findForCancellation(int $bookingId): Booking

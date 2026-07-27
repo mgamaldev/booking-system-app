@@ -46,4 +46,9 @@ class BookingService
     {
         return $this->bookingRepository->claimBookingReminders($daysBeforeReminder);
     }
+
+    public function markReminderAsSent(Booking $booking): bool
+    {
+        return $this->bookingRepository->markReminderAsSent($booking);
+    }
 }
