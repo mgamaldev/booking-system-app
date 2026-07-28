@@ -4,13 +4,21 @@ namespace App\Notifications;
 
 use App\Models\Booking;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
-class BookingConfirmationNotification extends Notification implements ShouldQueue
+class BookingConfirmationNotification extends Notification
 {
     use Queueable;
+
+    public int $tries = 5;
+
+    /**
+     * @var array<int, int>
+     */
+    public array $backoff = [10, 30, 60, 120];
 
     /**
      * Create a new notification instance.
@@ -53,5 +61,17 @@ class BookingConfirmationNotification extends Notification implements ShouldQueu
             'message' => 'Your booking has been confirmed.',
             'action_url' => url('/bookings/'.$this->booking->id),
         ];
+    }
+
+    public function failed(Throwable $e): void
+    {
+        Log::error('Booking confirmation notification failed permanently', [
+            'job' => self::class,
+            'booking_id' => $this->booking->id,
+            'customer_id' => $this->booking->customer_id,
+            'customer_email' => $this->booking->customer->email,
+            'exception' => $e::class,
+            'message' => $e->getMessage(),
+        ]);
     }
 }

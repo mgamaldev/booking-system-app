@@ -126,4 +126,8 @@ return [
         'table' => 'failed_jobs',
     ],
 
+    'failed_alerts' => [
+        'mail_to' => env('FAILED_JOB_ALERT_MAIL_TO'),
+    ],
+
 ];
