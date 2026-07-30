@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Jobs\SendBookingConfirmation;
 use App\Models\Booking;
+use App\Models\Customer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
@@ -17,7 +18,8 @@ class BookingEventTest extends TestCase
         Queue::fake();
 
         $booking = Booking::factory()->create();
-        $this->post(route('bookings.update', $booking), ['status' => 'confirmed'])
+        $this->actingAs(Customer::query()->findOrFail($booking->customer_id), 'sanctum')
+            ->post(route('bookings.update', $booking), ['status' => 'confirmed'])
             ->assertOk();
 
         Queue::assertPushed(SendBookingConfirmation::class, function (SendBookingConfirmation $job) use ($booking) {
@@ -32,7 +34,8 @@ class BookingEventTest extends TestCase
         Queue::fake();
 
         $booking = Booking::factory()->create();
-        $this->post(route('bookings.update', $booking), ['status' => 'pending']);
+        $this->actingAs(Customer::query()->findOrFail($booking->customer_id), 'sanctum')
+            ->post(route('bookings.update', $booking), ['status' => 'pending']);
 
         Queue::assertNotPushed(SendBookingConfirmation::class);
     }
@@ -45,9 +48,10 @@ class BookingEventTest extends TestCase
             'status' => 'pending',
         ]);
 
-        $this->post(route('bookings.update', $booking), [
-            'status' => 'confirmed',
-        ]);
+        $this->actingAs(Customer::query()->findOrFail($booking->customer_id), 'sanctum')
+            ->post(route('bookings.update', $booking), [
+                'status' => 'confirmed',
+            ]);
 
         Queue::assertPushed(SendBookingConfirmation::class, function (SendBookingConfirmation $job) {
             return $job->afterCommit === true;

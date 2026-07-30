@@ -12,14 +12,17 @@ uses(RefreshDatabase::class);
 
 test('it dispatches booking confirmation job after a booking is confirmed', function () {
     Queue::fake();
+    $customer = Customer::factory()->create();
 
     $booking = Booking::factory()->create([
+        'customer_id' => $customer->id,
         'status' => 'pending',
     ]);
 
-    $this->post(route('bookings.update', $booking), [
-        'status' => 'confirmed',
-    ])->assertOk();
+    $this->actingAs($customer, 'sanctum')
+        ->post(route('bookings.update', $booking), [
+            'status' => 'confirmed',
+        ])->assertOk();
 
     Queue::assertPushed(SendBookingConfirmation::class, function (SendBookingConfirmation $job) use ($booking) {
         return $job->booking->is($booking)
@@ -32,8 +35,9 @@ test('it dispatches booking confirmation job after a booking is confirmed', func
 
 test('it creates api bookings through the service as pending and does not dispatch confirmation', function () {
     Queue::fake();
+    $customer = Customer::factory()->create();
 
-    $response = $this->postJson(route('bookings.store'), [
+    $response = $this->actingAs($customer, 'sanctum')->postJson(route('bookings.store'), [
         'customer_id' => Customer::factory()->create()->id,
         'resource_id' => Resource::factory()->create()->id,
         'slot_id' => Slot::factory()->create()->id,
@@ -44,11 +48,35 @@ test('it creates api bookings through the service as pending and does not dispat
     $booking = Booking::query()->findOrFail($response->json('booking.id'));
 
     expect($booking->status)->toBe('pending');
+    expect($booking->customer_id)->toBe($customer->id);
     Queue::assertNotPushed(SendBookingConfirmation::class);
+});
+
+test('it requires authentication to create a booking', function () {
+    $this->postJson(route('bookings.store'), [
+        'customer_id' => Customer::factory()->create()->id,
+        'resource_id' => Resource::factory()->create()->id,
+        'slot_id' => Slot::factory()->create()->id,
+        'type' => 'one-on-one',
+    ])->assertUnauthorized();
+});
+
+test('it rejects booking updates from another user', function () {
+    $booking = Booking::factory()->create([
+        'customer_id' => Customer::factory()->create()->id,
+        'status' => 'pending',
+    ]);
+
+    $this->actingAs(Customer::factory()->create(), 'sanctum')
+        ->postJson(route('bookings.update', $booking), [
+            'status' => 'confirmed',
+        ])
+        ->assertForbidden();
 });
 
 test('it rejects api booking creation when the slot is already unavailable', function () {
     Queue::fake();
+    $customer = Customer::factory()->create();
 
     $slot = Slot::factory()->create();
 
@@ -58,7 +86,7 @@ test('it rejects api booking creation when the slot is already unavailable', fun
         'type' => 'one-on-one',
     ]);
 
-    $this->postJson(route('bookings.store'), [
+    $this->actingAs($customer, 'sanctum')->postJson(route('bookings.store'), [
         'customer_id' => Customer::factory()->create()->id,
         'resource_id' => Resource::factory()->create()->id,
         'slot_id' => $slot->id,

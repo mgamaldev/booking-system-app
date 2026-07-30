@@ -8,6 +8,7 @@ use Database\Factories\BookingFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -65,6 +66,14 @@ class Booking extends Model
     public function slot(): BelongsTo
     {
         return $this->belongsTo(Slot::class);
+    }
+
+    /**
+     * @return HasMany<BookingDocument, $this>
+     */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(BookingDocument::class);
     }
 
     public function getDurationAttribute(): SlotDuration
