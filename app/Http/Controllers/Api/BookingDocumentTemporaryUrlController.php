@@ -34,5 +34,3 @@ class BookingDocumentTemporaryUrlController extends Controller
         ]);
     }
 }
-
-
