@@ -9,16 +9,17 @@ use App\Jobs\SendBookingConfirmation;
 use App\Models\Booking;
 use App\Services\BookingService;
 use Exception;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class BookingController extends Controller
 {
-    public function store(StoreBookingRequest $request, BookingService $bookingService)
+    public function store(StoreBookingRequest $request, BookingService $bookingService): JsonResponse
     {
         try {
             $booking = DB::transaction(function () use ($request, $bookingService) {
-                $booking = $bookingService->createBooking($request->validated());
+                $booking = $bookingService->createBookingForCustomer($request->validated(), (int) auth()->id());
 
                 if ($booking->status === 'confirmed') {
                     SendBookingConfirmation::dispatch($booking)->afterCommit();
@@ -42,12 +43,12 @@ class BookingController extends Controller
     /**
      * @throws \Throwable
      */
-    public function update(UpdateBookingRequest $request, Booking $booking)
+    public function update(UpdateBookingRequest $request, Booking $booking, BookingService $bookingService): JsonResponse
     {
-        $booking = DB::transaction(function () use ($request, $booking) {
-            $booking->update($request->validated());
+        abort_if((int) $booking->customer_id !== (int) auth()->id(), 403);
 
-            $booking->refresh();
+        $booking = DB::transaction(function () use ($request, $booking, $bookingService) {
+            $booking = $bookingService->updateExistingBooking($booking, $request->validated());
 
             if ($booking->status === 'confirmed') {
                 SendBookingConfirmation::dispatch($booking)->afterCommit();

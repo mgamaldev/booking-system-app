@@ -18,9 +18,23 @@ class BookingService
         return BookingStrategyResolver::resolve($type)->createBooking($data);
     }
 
+    public function createBookingForCustomer(array $data, int $customerId): Booking
+    {
+        return $this->createBooking(array_merge($data, [
+            'customer_id' => $customerId,
+        ]));
+    }
+
     public function updateBooking(array $data, int $id): bool
     {
         return $this->bookingRepository->update($data, $id);
+    }
+
+    public function updateExistingBooking(Booking $booking, array $data): Booking
+    {
+        $this->bookingRepository->update($data, $booking->id);
+
+        return $this->bookingRepository->find($booking->id);
     }
 
     public function deleteBooking(int $id): bool

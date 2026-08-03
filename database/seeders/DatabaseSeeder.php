@@ -16,10 +16,10 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             CancellationFeeSettingsSeeder::class,
-            BookingSeeder::class,
             ResourceSeeder::class,
             SlotSeeder::class,
             CustomerSeeder::class,
+            BookingSeeder::class,
         ]);
     }
 }
