@@ -53,4 +53,9 @@ class BookingService
     {
         return $this->bookingRepository->markReminderAsSent($booking);
     }
+
+    public function markReminderAsFailed(Booking $booking): bool
+    {
+        return $this->bookingRepository->markReminderAsFailed($booking);
+    }
 }

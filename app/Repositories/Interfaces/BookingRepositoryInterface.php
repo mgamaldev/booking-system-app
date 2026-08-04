@@ -25,4 +25,6 @@ interface BookingRepositoryInterface
     public function claimBookingReminders(int $daysBeforeReminder): Collection;
 
     public function markReminderAsSent(Booking $booking): bool;
+
+    public function markReminderAsFailed(Booking $booking): bool;
 }

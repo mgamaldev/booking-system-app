@@ -7,6 +7,7 @@ use App\Notifications\BookingReminderNotification;
 use App\Notifications\FailedQueueJobNotification;
 use Illuminate\Contracts\Queue\Job;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
@@ -47,7 +48,9 @@ test('booking confirmation notification logs structured context when it fails pe
 });
 
 test('booking reminder notification logs structured context when it fails permanently', function () {
-    $booking = Booking::factory()->create();
+    $booking = Booking::factory()->create([
+        'reminder_sent_at' => now(),
+    ]);
     $exception = new RuntimeException('Mail transport rejected message');
 
     Log::shouldReceive('error')
@@ -65,6 +68,27 @@ test('booking reminder notification logs structured context when it fails perman
         ));
 
     (new BookingReminderNotification($booking))->failed($exception);
+
+    expect($booking->fresh()->reminder_sent_at)->toBeNull();
+});
+
+test('queued booking reminder failure makes the booking eligible for retry', function () {
+    $booking = Booking::factory()->create([
+        'reminder_sent_at' => now(),
+    ]);
+    $exception = new RuntimeException('Permanent SMTP failure');
+    $notification = new BookingReminderNotification($booking);
+    $queuedNotification = new SendQueuedNotifications(
+        $booking->customer,
+        $notification,
+        $notification->via($booking->customer),
+    );
+
+    Log::shouldReceive('error')->once();
+
+    $queuedNotification->failed($exception);
+
+    expect($booking->fresh()->reminder_sent_at)->toBeNull();
 });
 
 test('failed job listener logs critical context and sends the configured alert', function () {

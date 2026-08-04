@@ -108,4 +108,11 @@ class BookingRepository implements BookingCancellationRepositoryInterface, Booki
 
         return $booking->refresh();
     }
+
+    public function markReminderAsFailed(Booking $booking): bool
+    {
+        return $booking->update([
+            'reminder_sent_at' => null,
+        ]);
+    }
 }
