@@ -12,10 +12,7 @@ uses(RefreshDatabase::class);
 test('authorized user receives a temporary document url', function () {
     Storage::fake('documents');
 
-    $user = User::factory()->create();
-    $customer = Customer::factory()->create([
-        'email' => $user->email,
-    ]);
+    $customer = Customer::factory()->create();
     $booking = Booking::factory()->create([
         'customer_id' => $customer->id,
     ]);
@@ -24,7 +21,7 @@ test('authorized user receives a temporary document url', function () {
         'key' => 'booking-documents/receipt.pdf',
     ]);
 
-    $this->actingAs($user)
+    $this->actingAs($customer, 'sanctum')
         ->getJson(route('booking-documents.temporary-url', $document))
         ->assertOk()
         ->assertJsonStructure([
@@ -52,10 +49,36 @@ test('unauthorized user is refused before a temporary document url is generated'
         'booking_id' => $booking->id,
     ]);
     $otherUser = User::factory()->create([
+        'id' => $customer->id,
         'email' => 'other@example.test',
     ]);
 
-    $this->actingAs($otherUser)
+    $this->actingAs($otherUser, 'sanctum')
+        ->getJson(route('booking-documents.temporary-url', $document))
+        ->assertForbidden();
+});
+
+test('user with the same email as the customer cannot receive a temporary document url', function () {
+    Storage::fake('documents');
+    Storage::disk('documents')->buildTemporaryUrlsUsing(function () {
+        throw new RuntimeException('Temporary URL should not be generated for unauthorized users.');
+    });
+
+    $customer = Customer::factory()->create([
+        'email' => 'shared@example.test',
+    ]);
+    $booking = Booking::factory()->create([
+        'customer_id' => $customer->id,
+    ]);
+    $document = BookingDocument::factory()->create([
+        'booking_id' => $booking->id,
+    ]);
+    $user = User::factory()->create([
+        'id' => $customer->id + 100,
+        'email' => $customer->email,
+    ]);
+
+    $this->actingAs($user, 'sanctum')
         ->getJson(route('booking-documents.temporary-url', $document))
         ->assertForbidden();
 });

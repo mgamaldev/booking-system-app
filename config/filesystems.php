@@ -47,15 +47,6 @@ return [
             'report' => false,
         ],
 
-        'documents' => [
-            'driver' => env('DOCUMENTS_DISK_DRIVER', 'local'),
-            'root' => storage_path('app/documents'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/documents',
-            'serve' => true,
-            'throw' => false,
-            'report' => false,
-            'temporary_url_expiration_minutes' => env('DOCUMENTS_TEMPORARY_URL_MINUTES', 5),
-        ],
 
         's3' => [
             'driver' => 's3',

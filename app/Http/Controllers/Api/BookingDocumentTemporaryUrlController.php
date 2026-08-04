@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Concerns\ReturnsApiResponses;
 use App\Http\Controllers\Controller;
 use App\Models\BookingDocument;
+use App\Models\Customer;
 use Illuminate\Support\Facades\Storage;
 
 class BookingDocumentTemporaryUrlController extends Controller
@@ -17,8 +18,11 @@ class BookingDocumentTemporaryUrlController extends Controller
 
         $bookingDocument->loadMissing('booking.customer');
 
+        $user = request()->user();
+
         abort_unless(
-            $bookingDocument->booking->customer->email === request()->user()->email,
+            $user instanceof Customer
+                && (int) $bookingDocument->booking->customer_id === (int) $user->getAuthIdentifier(),
             403
         );
 
