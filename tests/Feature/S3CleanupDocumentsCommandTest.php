@@ -3,6 +3,7 @@
 use App\Models\Booking;
 use App\Models\BookingDocument;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
@@ -11,6 +12,7 @@ beforeEach(function () {
     config([
         'cache.default' => 'array',
         'queue.default' => 'sync',
+        'filesystems.disks.documents.orphan_cleanup_grace_minutes' => 0,
     ]);
 });
 
@@ -40,6 +42,8 @@ test('it removes orphaned and expired soft deleted booking document objects only
         'deleted_at' => now()->subDays(4),
     ])->save();
 
+    Log::spy();
+
     $this->artisan('s3:cleanup-documents', [
         '--retention-days' => 3,
     ])->assertSuccessful();
@@ -52,6 +56,15 @@ test('it removes orphaned and expired soft deleted booking document objects only
     expect(BookingDocument::withTrashed()->where('key', $liveKey)->exists())->toBeTrue()
         ->and(BookingDocument::withTrashed()->where('key', $recentlyDeletedKey)->exists())->toBeTrue()
         ->and(BookingDocument::withTrashed()->where('key', $expiredDeletedKey)->exists())->toBeFalse();
+
+    Log::shouldHaveReceived('info')
+        ->once()
+        ->with('S3 booking document cleanup completed.', Mockery::on(
+            fn (array $context): bool => $context['retention_days'] === 3
+                && $context['expired_soft_deleted_documents_deleted'] === 1
+                && $context['orphaned_document_objects_deleted'] === 1
+                && $context['total_document_objects_deleted'] === 2
+        ));
 });
 
 test('it is idempotent when a deletable object is already missing', function () {
@@ -72,6 +85,37 @@ test('it is idempotent when a deletable object is already missing', function () 
 
     Storage::disk('documents')->assertMissing($missingKey);
     expect(BookingDocument::withTrashed()->where('key', $missingKey)->exists())->toBeFalse();
+});
+
+test('it does not remove orphaned document objects inside the grace window', function () {
+    config([
+        'filesystems.disks.documents.orphan_cleanup_grace_minutes' => 15,
+    ]);
+
+    Storage::fake('documents');
+
+    $booking = Booking::factory()->create();
+    $recentOrphanedKey = "bookings/{$booking->id}/documents/recent-orphaned.pdf";
+
+    Storage::disk('documents')->put($recentOrphanedKey, 'upload in flight');
+
+    Log::spy();
+
+    $this->artisan('s3:cleanup-documents', [
+        '--retention-days' => 3,
+    ])->assertSuccessful();
+
+    Storage::disk('documents')->assertExists($recentOrphanedKey);
+
+    Log::shouldHaveReceived('info')
+        ->once()
+        ->with('S3 booking document cleanup completed.', Mockery::on(
+            fn (array $context): bool => $context['retention_days'] === 3
+                && $context['orphan_cleanup_grace_minutes'] === 15
+                && $context['expired_soft_deleted_documents_deleted'] === 0
+                && $context['orphaned_document_objects_deleted'] === 0
+                && $context['total_document_objects_deleted'] === 0
+        ));
 });
 
 function createBookingDocument(Booking $booking, string $key): BookingDocument

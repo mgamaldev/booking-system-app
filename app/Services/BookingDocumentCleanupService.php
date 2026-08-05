@@ -22,44 +22,58 @@ class BookingDocumentCleanupService
 
     public function cleanup(int $retentionDays): void
     {
-        $this->deleteExpiredSoftDeletedDocuments($retentionDays);
-        $this->deleteOrphanedDocumentObjects();
+        $expiredSoftDeletedDocumentsDeleted = $this->deleteExpiredSoftDeletedDocuments($retentionDays);
+        $orphanedDocumentObjectsDeleted = $this->deleteOrphanedDocumentObjects();
 
         Log::info('S3 booking document cleanup completed.', [
             'retention_days' => $retentionDays,
+            'orphan_cleanup_grace_minutes' => $this->orphanCleanupGraceMinutes(),
+            'expired_soft_deleted_documents_deleted' => $expiredSoftDeletedDocumentsDeleted,
+            'orphaned_document_objects_deleted' => $orphanedDocumentObjectsDeleted,
+            'total_document_objects_deleted' => $expiredSoftDeletedDocumentsDeleted + $orphanedDocumentObjectsDeleted,
         ]);
     }
 
-    private function deleteExpiredSoftDeletedDocuments(int $retentionDays): void
+    private function deleteExpiredSoftDeletedDocuments(int $retentionDays): int
     {
-        $this->documents
+        return $this->documents
             ->expiredDeletedDocuments(
                 self::DISK,
                 now()->subDays($retentionDays),
             )
             ->chunk(self::BATCH_SIZE)
-            ->each(fn (LazyCollection $documents) => $this->deleteDocumentBatch($documents));
+            ->reduce(
+                fn (int $total, LazyCollection $documents): int => $total + $this->deleteDocumentBatch($documents),
+                0,
+            );
     }
 
-    private function deleteDocumentBatch(LazyCollection $documents): void
+    private function deleteDocumentBatch(LazyCollection $documents): int
     {
-        Storage::disk(self::DISK)->delete(
-            $documents->pluck('key')->all(),
-        );
+        $documents = $documents->collect();
+        $keys = $documents->pluck('key')->all();
+
+        Storage::disk(self::DISK)->delete($keys);
 
         $this->documents->forceDeleteTrashedByIds(
             $documents->pluck('id')->all(),
         );
+
+        return count($keys);
     }
 
-    private function deleteOrphanedDocumentObjects(): void
+    private function deleteOrphanedDocumentObjects(): int
     {
-        collect(Storage::disk(self::DISK)->allFiles(self::PREFIX))
+        return collect(Storage::disk(self::DISK)->allFiles(self::PREFIX))
+            ->filter(fn (string $key): bool => $this->isOutsideOrphanCleanupGraceWindow($key))
             ->chunk(self::BATCH_SIZE)
-            ->each(fn (Collection $keys) => $this->deleteOrphanedBatch($keys));
+            ->reduce(
+                fn (int $total, Collection $keys): int => $total + $this->deleteOrphanedBatch($keys),
+                0,
+            );
     }
 
-    private function deleteOrphanedBatch(Collection $keys): void
+    private function deleteOrphanedBatch(Collection $keys): int
     {
         $orphanedKeys = $this->documents->orphanedKeys(
             self::DISK,
@@ -67,11 +81,27 @@ class BookingDocumentCleanupService
         );
 
         if ($orphanedKeys->isEmpty()) {
-            return;
+            return 0;
         }
 
         Storage::disk(self::DISK)->delete(
             $orphanedKeys->all(),
         );
+
+        return $orphanedKeys->count();
+    }
+
+    private function isOutsideOrphanCleanupGraceWindow(string $key): bool
+    {
+        $cutoffTimestamp = now()
+            ->subMinutes($this->orphanCleanupGraceMinutes())
+            ->getTimestamp();
+
+        return Storage::disk(self::DISK)->lastModified($key) <= $cutoffTimestamp;
+    }
+
+    private function orphanCleanupGraceMinutes(): int
+    {
+        return max(0, (int) config('filesystems.disks.documents.orphan_cleanup_grace_minutes', 15));
     }
 }
