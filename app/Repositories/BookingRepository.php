@@ -5,8 +5,10 @@ namespace App\Repositories;
 use App\Models\Booking;
 use App\Repositories\Interfaces\BookingCancellationRepositoryInterface;
 use App\Repositories\Interfaces\BookingRepositoryInterface;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 class BookingRepository implements BookingCancellationRepositoryInterface, BookingRepositoryInterface
 {
@@ -54,6 +56,40 @@ class BookingRepository implements BookingCancellationRepositoryInterface, Booki
         return $booking;
     }
 
+    public function getBookingForReminder(int $daysBeforeReminder): Collection
+    {
+        $reminderDate = Carbon::now()->addDays($daysBeforeReminder)->toDateString();
+
+        return Booking::query()
+            ->confirmed()
+            ->whereHas('slot', function ($query) use ($reminderDate) {
+                $query->whereDate('date', $reminderDate);
+            })
+            ->with(['customer', 'slot'])
+            ->get();
+    }
+
+    public function claimBookingReminders(int $daysBeforeReminder): Collection
+    {
+        $reminderDate = Carbon::now()->addDays($daysBeforeReminder)->toDateString();
+
+        return Booking::query()
+            ->confirmed()
+            ->whereNull('reminder_sent_at')
+            ->whereHas('slot', function ($query) use ($reminderDate) {
+                $query->whereDate('date', $reminderDate);
+            })
+            ->with(['customer', 'slot'])
+            ->get();
+    }
+
+    public function markReminderAsSent(Booking $booking): bool
+    {
+        return $booking->update([
+            'reminder_sent_at' => Carbon::now(),
+        ]);
+    }
+
     public function findForCancellation(int $bookingId): Booking
     {
         /** @var Booking $booking */
@@ -71,5 +107,12 @@ class BookingRepository implements BookingCancellationRepositoryInterface, Booki
         ]);
 
         return $booking->refresh();
+    }
+
+    public function markReminderAsFailed(Booking $booking): bool
+    {
+        return $booking->update([
+            'reminder_sent_at' => null,
+        ]);
     }
 }

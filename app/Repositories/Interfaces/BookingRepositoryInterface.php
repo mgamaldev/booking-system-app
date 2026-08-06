@@ -4,6 +4,7 @@ namespace App\Repositories\Interfaces;
 
 use App\Models\Booking;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 interface BookingRepositoryInterface
 {
@@ -18,4 +19,12 @@ interface BookingRepositoryInterface
     public function find(int $id): Booking;
 
     public function findBy(string $columnName, $value): Booking;
+
+    public function getBookingForReminder(int $daysBeforeReminder): Collection;
+
+    public function claimBookingReminders(int $daysBeforeReminder): Collection;
+
+    public function markReminderAsSent(Booking $booking): bool;
+
+    public function markReminderAsFailed(Booking $booking): bool;
 }

@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Repositories\Interfaces\BookingRepositoryInterface;
 use App\Strategies\BookingStrategies\BookingStrategyResolver;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 class BookingService
 {
@@ -50,5 +51,25 @@ class BookingService
     public function getBookingById(int $id): Booking
     {
         return $this->bookingRepository->find($id);
+    }
+
+    public function getBookingForReminder(int $daysBeforeReminder): Collection
+    {
+        return $this->bookingRepository->getBookingForReminder($daysBeforeReminder);
+    }
+
+    public function claimBookingReminders(int $daysBeforeReminder): Collection
+    {
+        return $this->bookingRepository->claimBookingReminders($daysBeforeReminder);
+    }
+
+    public function markReminderAsSent(Booking $booking): bool
+    {
+        return $this->bookingRepository->markReminderAsSent($booking);
+    }
+
+    public function markReminderAsFailed(Booking $booking): bool
+    {
+        return $this->bookingRepository->markReminderAsFailed($booking);
     }
 }

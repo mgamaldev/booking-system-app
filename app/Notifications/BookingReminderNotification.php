@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Booking;
+use App\Services\BookingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -48,6 +49,8 @@ class BookingReminderNotification extends Notification implements ShouldQueue
 
     public function failed(Throwable $e): void
     {
+        app(BookingService::class)->markReminderAsFailed($this->booking);
+
         Log::error('Booking reminder notification failed permanently', [
             'job' => self::class,
             'booking_id' => $this->booking->id,
