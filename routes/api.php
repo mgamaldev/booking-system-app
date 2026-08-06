@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\BookingController;
+use App\Http\Controllers\Api\BookingDocumentTemporaryUrlController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\S3UploadController;
 use Illuminate\Http\Request;
@@ -17,4 +18,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('booking', [BookingController::class, 'store'])->name('bookings.store');
     Route::post('booking/{booking}/update', [BookingController::class, 'update'])->name('bookings.update');
     Route::post('booking/{booking}/documents', [S3UploadController::class, 'upload'])->name('bookings.upload');
+    Route::get('booking-documents/{booking_document}/temporary-url', BookingDocumentTemporaryUrlController::class)
+        ->name('booking-documents.temporary-url');
 });
