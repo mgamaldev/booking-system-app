@@ -2,11 +2,14 @@
 
 namespace App\Services;
 
+use App\Jobs\SendBookingConfirmation;
 use App\Models\Booking;
 use App\Repositories\Interfaces\BookingRepositoryInterface;
 use App\Strategies\BookingStrategies\BookingStrategyResolver;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class BookingService
 {
@@ -19,11 +22,25 @@ class BookingService
         return BookingStrategyResolver::resolve($type)->createBooking($data);
     }
 
+    /**
+     * @throws LockTimeoutException
+     */
     public function createBookingForCustomer(array $data, int $customerId): Booking
     {
-        return $this->createBooking(array_merge($data, [
-            'customer_id' => $customerId,
-        ]));
+        $waitSeconds = (int) config('booking.lock.wait_seconds');
+        $ttl = (int) config('booking.lock.ttl_seconds');
+        $data = array_merge($data, ['customer_id' => $customerId]);
+
+        return Cache::lock("slot:{$data['slot_id']}:book", $ttl)
+            ->block($waitSeconds, function () use ($data) {
+                $booking = $this->createBooking($data);
+                SendBookingConfirmation::dispatchIf(
+                    $booking->status === 'confirmed',
+                    $booking,
+                )->afterCommit();
+
+                return $booking;
+            });
     }
 
     public function updateBooking(array $data, int $id): bool
@@ -35,7 +52,14 @@ class BookingService
     {
         $this->bookingRepository->update($data, $booking->id);
 
-        return $this->bookingRepository->find($booking->id);
+        $updatedBooking = $this->bookingRepository->find($booking->id);
+
+        SendBookingConfirmation::dispatchIf(
+            $updatedBooking->status === 'confirmed',
+            $updatedBooking,
+        )->afterCommit();
+
+        return $updatedBooking;
     }
 
     public function deleteBooking(int $id): bool
