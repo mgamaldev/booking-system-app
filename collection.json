@@ -22,6 +22,11 @@
       "type": "string"
     },
     {
+      "key": "booking_document_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
       "key": "customer_id",
       "value": "1",
       "type": "string"
@@ -249,6 +254,20 @@
         },
         {
           "name": "Upload Booking Document",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.document && json.document.id) {",
+                  "    pm.collectionVariables.set('booking_document_id', json.document.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -276,6 +295,30 @@
                 "booking",
                 "{{booking_id}}",
                 "documents"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Booking Document Temporary URL",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking-documents/{{booking_document_id}}/temporary-url",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking-documents",
+                "{{booking_document_id}}",
+                "temporary-url"
               ]
             }
           },
