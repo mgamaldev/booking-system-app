@@ -3,12 +3,26 @@
 use App\Jobs\SendBookingReminder;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+Artisan::command('idempotency-keys:prune', function () {
+    $deleted = DB::table('idempotency_keys')
+        ->where('created_at', '<', now()->subDay())
+        ->delete();
+
+    $this->info("Pruned {$deleted} idempotency key records.");
+})->purpose('Prune idempotency key records older than 24 hours');
+
 Schedule::useCache('database');
+
+Schedule::command('idempotency-keys:prune')
+    ->hourly()
+    ->withoutOverlapping()
+    ->onOneServer();
 
 Schedule::job(new SendBookingReminder)
     ->everyFifteenMinutes()
