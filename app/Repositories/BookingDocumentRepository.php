@@ -7,6 +7,9 @@ use App\Repositories\Interfaces\BookingDocumentRepositoryInterface;
 
 class BookingDocumentRepository implements BookingDocumentRepositoryInterface
 {
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function create(array $data): BookingDocument
     {
         /** @var BookingDocument $document */
